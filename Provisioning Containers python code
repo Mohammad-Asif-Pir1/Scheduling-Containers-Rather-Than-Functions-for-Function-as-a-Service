@@ -1,0 +1,49 @@
+q_begin=int(input("Enter the sequence number of first request :"))
+q_end=int(input("Enter the sequence number of last request arrived:"))
+c_creating=int(input("Enter the number of currently creating containers:"))
+c_created=int(input("Enter the number of already created containers:"))
+tick_interval=int(input("Enter the value of tick interval:"))
+t_avgfunc=int(input("Enter the average execution time:"))
+create_containers=0
+tick=0
+S=[0]*100
+S1=[0,0,q_begin,q_end]
+S2=[q_begin,q_end,c_created,c_creating]
+
+#renew snapshot
+
+if q_begin==0:
+    S[tick]=S1[tick]
+elif q_end-q_begin>0 or q_end-S[tick]*q_end>0:
+    tick=tick+1
+    S[tick]=S2[tick]
+    
+#provision containers
+
+c_shortage=0
+c_total=S[tick]*c_created+S[tick]*c_creating
+print("Total number of containers that have been created and are creating:",c_total)
+r_input_queue=S[tick]*q_end-S[tick]*q_begin
+print("Number of requests that currently exist in the queue.:",r_input_queue)
+if tick==0:
+    if S[tick]*c_creating==0: #condition 1
+        c_shortage=1
+    else:                     #condition 2
+        c_shortage=q_end-S[tick]*c_creating
+elif c_total<r_input_queue:
+    p_container=tick_interval/t_avgfunc
+    print("Total number of requests that a container can handle for an interval:",p_container)
+    r_arrivals=S[tick]*q_end-S[tick-1]*q_end
+    print("the number of requests that arrive in the last interval",r_arrivals)
+    c_required=r_input_queue/p_container
+    print("Number of required containers is:",c_required)
+    if r_arrivals < r_input_queue:              #condition 3
+        c_shortage=c_required-S[tick]*c_creating
+    elif r_arrivals >= p_container*c_total:     #condition 4
+        c_shortage=c_required-c_total
+        
+print("shortage-->c_required-c_total:",c_shortage)
+if c_shortage > 0:
+    create_containers=min(c_shortage,r_input_queue)
+    print("Total number new containers to create",create_containers)
+        
